@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup
 import datetime
 
 time_table_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getOneTable"
-user_id_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getPrimaryTableList"
+time_table_list_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getPrimaryTableList"
+semester_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getSemesters"
 root_url = "http://everytime.kr/"
-define_date = ["MON", "TUE", "WED", "THU", "FRI"]
 
 
 class EverytimeLecture(dict):
@@ -21,9 +21,9 @@ class EverytimeLecture(dict):
         super().__init__()
         self.update({
             "name": name,
-            "start_time": start_time,
-            "end_time": end_time,
-            "day": day,
+            "start_time": int(start_time),
+            "end_time": int(end_time),
+            "day": int(day),
             "place": place
         })
 
@@ -38,8 +38,23 @@ class EverytimeFriend(dict):
 def parse_timetable(ses=None, uid=None):
     # TODO: 둘 중 None이 아닌 것을 이용해 작업합니다
     # ses - requests 세션, uid - 에브리타임 사용자 아이디
+    if uid:
+        return parse_timetable_by_id(uid)
+    elif ses:
+        lecture_list = []
+        r = BeautifulSoup(
+            requests.post(time_table_url,
+                          data={'id': get_timetable_id_by_token(ses), 'token': get_timetable_user_token(ses)}).text)
+        for datas in r.find_all('subject'):
+            name = datas.find("name").get('value')
+            for data in datas.find_all('data'):
+                day = data.get('day')
+                starttime = data.get('starttime')
+                endtime = data.get('endtime')
+                place = data.get('place')
+                lecture_list.append(EverytimeLecture(name, starttime, endtime, day, place))
 
-    pass
+        return lecture_list
 
 
 def parse_friends(ses=None):
@@ -52,7 +67,7 @@ def parse_timetable_by_id(id):
     # id : timetable id
     # userid : user id
 
-    LectureList = list()
+    lecture_list = []
 
     r = BeautifulSoup(
         requests.post(time_table_url, data={'id': get_timetable_id(id), 'userid': get_timetable_user_id(id)}).text)
@@ -64,14 +79,15 @@ def parse_timetable_by_id(id):
             starttime = data.get('starttime')
             endtime = data.get('endtime')
             place = data.get('place')
-            LectureList.append(EverytimeLecture(name, starttime, endtime, day, place))
-    return LectureList
+            lecture_list.append(EverytimeLecture(name, starttime, endtime, day, place))
+
+    return lecture_list
 
 
 def get_timetable_id(id):
     # TODO: get timetable id
     # userid : user id
-    bs = BeautifulSoup(requests.post(user_id_url, data={
+    bs = BeautifulSoup(requests.post(time_table_list_url, data={
         'userid': get_timetable_user_id(id)}).text)
     return (bs.find(year=datetime.datetime.now().year)).get('id')
 
@@ -82,9 +98,45 @@ def get_timetable_user_id(id):
     return (bs.find(id="friendToken")).get('value')
 
 
-def login(self):
-    ses = requests.Session()
-    ses.get()
+def get_timetable_user_token(ses):
+    # TODO: get user token
+    bs = BeautifulSoup(ses.post(root_url + "timetable/").text)
+    return (bs.find(id="userToken")).get('value')
 
 
-print(parse_timetable_by_id("metaljsw"))
+def get_semester(ses):
+    # TODO: get semester
+    bs = BeautifulSoup(ses.post(semester_url, data={
+        "token": get_timetable_user_token(ses)
+    }).text)
+    year = datetime.datetime.now().year
+    month = datetime.datetime.now().month
+    day = datetime.datetime.now().day
+    for obj in bs.find(year=year):
+
+        start_date = obj.get('start_date')
+        end_date = obj.get('end_date')
+
+        temp = start_date.split("-")
+
+        start_month = int(temp[1])
+        start_day = int(temp[2])
+
+        temp = end_date.split("-")
+
+        end_month = int(temp[1])
+        end_day = int(temp[2])
+
+        if month > start_month and day > start_day and month < end_month and day < end_day:
+            return obj.get('semester')
+
+
+def get_timetable_id_by_token(ses):
+    # TODO: get timetable id by token
+
+    bs = BeautifulSoup(ses.post(time_table_list_url, data={
+        "year": 2017,
+        "semester": get_semester(ses),
+        "token": get_timetable_user_token(ses)
+    }).text)
+    return (bs.find(year=datetime.datetime.now().year)).get('id')
