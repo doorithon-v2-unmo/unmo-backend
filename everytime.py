@@ -10,6 +10,7 @@ time_table_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getOneTabl
 time_table_list_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getPrimaryTableList"
 semester_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getSemesters"
 root_url = "http://everytime.kr/"
+friend_url = "http://everytime.kr/ajax/friend/getfriendlist"
 
 
 class EverytimeLecture(dict):
@@ -32,19 +33,27 @@ class EverytimeFriend(dict):
     """
     친구 단위 Class
     """
-    pass
+
+    def __init__(self, name, id, userid, nickname, picture):
+        super().__init__()
+        self.update({
+            "name": name,
+            "id": int(id),
+            "userid": userid,
+            "nickname": nickname,
+            "picture": picture
+        })
 
 
 def parse_timetable(ses=None, uid=None):
-    # TODO: 둘 중 None이 아닌 것을 이용해 작업합니다
     # ses - requests 세션, uid - 에브리타임 사용자 아이디
     if uid:
         return parse_timetable_by_id(uid)
     elif ses:
         lecture_list = []
         r = BeautifulSoup(
-            requests.post(time_table_url,
-                          data={'id': get_timetable_id_by_token(ses), 'token': get_timetable_user_token(ses)}).text)
+            ses.post(time_table_url,
+                     data={'id': get_timetable_id_by_token(ses), 'token': get_timetable_user_token(ses)}).text)
         for datas in r.find_all('subject'):
             name = datas.find("name").get('value')
             for data in datas.find_all('data'):
@@ -58,19 +67,28 @@ def parse_timetable(ses=None, uid=None):
 
 
 def parse_friends(ses=None):
-    # TODO: requests 세션이 input 되면 이를 이용해 친구 목록을 파싱합니다.
-    pass
+    everytime_friend_list = []
+    r = BeautifulSoup(
+        ses.post(friend_url).text)
+    for data in r.find_all('friend'):
+        id = data.get('id')
+        userid = data.get('userid')
+        name = data.get('name')
+        nickname = data.get('nickname')
+        picture = data.get('picture')
+        everytime_friend_list.append(EverytimeFriend(name, id, userid, nickname, picture))
+
+    return everytime_friend_list
 
 
-def parse_timetable_by_id(id):
-    # TODO: get timetable by id
+def parse_timetable_by_id(uid):
     # id : timetable id
     # userid : user id
 
     lecture_list = []
 
     r = BeautifulSoup(
-        requests.post(time_table_url, data={'id': get_timetable_id(id), 'userid': get_timetable_user_id(id)}).text)
+        requests.post(time_table_url, data={'id': get_timetable_id(uid), 'userid': get_timetable_user_id(uid)}).text)
 
     for datas in r.find_all('subject'):
         name = datas.find("name").get('value')
@@ -84,28 +102,24 @@ def parse_timetable_by_id(id):
     return lecture_list
 
 
-def get_timetable_id(id):
-    # TODO: get timetable id
+def get_timetable_id(uid):
     # userid : user id
     bs = BeautifulSoup(requests.post(time_table_list_url, data={
-        'userid': get_timetable_user_id(id)}).text)
+        'userid': get_timetable_user_id(uid)}).text)
     return (bs.find(year=datetime.datetime.now().year)).get('id')
 
 
-def get_timetable_user_id(id):
-    # TODO: get user id
-    bs = BeautifulSoup(requests.post(root_url + "@" + id).text)
+def get_timetable_user_id(uid):
+    bs = BeautifulSoup(requests.post(root_url + "@" + uid).text)
     return (bs.find(id="friendToken")).get('value')
 
 
 def get_timetable_user_token(ses):
-    # TODO: get user token
     bs = BeautifulSoup(ses.post(root_url + "timetable/").text)
     return (bs.find(id="userToken")).get('value')
 
 
 def get_semester(ses):
-    # TODO: get semester
     bs = BeautifulSoup(ses.post(semester_url, data={
         "token": get_timetable_user_token(ses)
     }).text)
@@ -127,13 +141,11 @@ def get_semester(ses):
         end_month = int(temp[1])
         end_day = int(temp[2])
 
-        if month > start_month and day > start_day and month < end_month and day < end_day:
+        if month > start_month and day > start_day < end_month and day < end_day:
             return obj.get('semester')
 
 
 def get_timetable_id_by_token(ses):
-    # TODO: get timetable id by token
-
     bs = BeautifulSoup(ses.post(time_table_list_url, data={
         "year": 2017,
         "semester": get_semester(ses),
