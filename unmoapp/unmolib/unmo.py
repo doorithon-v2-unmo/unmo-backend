@@ -15,7 +15,7 @@ def unmo_diff(lectures_list):
 
     for day in range(5):
 
-        start_flag = 0
+        start_flag = 96
         check_flag = False
 
         for time_point in range(96, 264):

@@ -15,4 +15,4 @@ def convert_et_to_timestr(et, add_minutes=0):
     mytime = datetime.combine(datetime.today(), time(0))
     mytime += timedelta(minutes=et * 5 + add_minutes)
     mytime = mytime.time()
-    return "%d:%d" % (mytime.hour, mytime.minute + add_minutes)
+    return "%02d:%02d" % (mytime.hour, mytime.minute + add_minutes)
