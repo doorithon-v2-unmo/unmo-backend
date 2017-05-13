@@ -3,6 +3,7 @@ from . import consts
 from .unmolib import utility, everytime, unmo
 from .models import StdResponse
 import pickle
+import os
 
 
 def everytime_login(uid, pwd):
@@ -20,6 +21,14 @@ def everytime_login(uid, pwd):
             return StdResponse("unknown")
     else:
         return StdResponse("auth.failed")
+
+
+def session_expire(ses_id):
+    try:
+        os.remove("session_%s" % ses_id)
+        return StdResponse("success")
+    except:
+        return StdResponse("auth.notexist")
 
 
 def get_friends(ses_id):

@@ -10,6 +10,10 @@ def member_login(uid, pwd):
         return StdResponse("auth.failed")
 
 
+def member_logout(ses_id):
+    return controllers.session_expire(ses_id)
+
+
 def member_friends(ses_id):
     return controllers.get_friends(ses_id)
 

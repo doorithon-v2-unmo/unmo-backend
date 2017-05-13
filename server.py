@@ -13,6 +13,13 @@ def member_login():
     return resp
 
 
+@application.route('/member/logout', methods=['POST'])
+def member_login():
+    resp = jsonify(views.member_logout(request.form["session_id"]))
+    resp.headers['Access-Control-Allow-Origin'] = allow_origin_url  # 타 URL 접근 허용
+    return resp
+
+
 @application.route('/member/friends', methods=['POST'])
 def member_friends():
     resp = jsonify(views.member_friends(request.form["session_id"]))
