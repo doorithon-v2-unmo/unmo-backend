@@ -14,7 +14,7 @@ def member_login():
 
 
 @application.route('/member/logout', methods=['POST'])
-def member_login():
+def member_logout():
     resp = jsonify(views.member_logout(request.form["session_id"]))
     resp.headers['Access-Control-Allow-Origin'] = allow_origin_url  # 타 URL 접근 허용
     return resp

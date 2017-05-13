@@ -1,3 +1,6 @@
+from .utility import convert_et_to_timestr
+
+
 def unmo_diff(lectures_list):
     day_array = [True for _ in range(288)]
     week_array = [day_array[:], day_array[:], day_array[:], day_array[:], day_array[:]]
@@ -15,17 +18,18 @@ def unmo_diff(lectures_list):
         start_flag = 0
         check_flag = False
 
-        for time_point in range(288):
+        for time_point in range(96, 264):
             if not check_flag:
                 if not week_array[day][time_point]:
-                    available_time[day].append({"start_time": start_flag, "end_time": time_point - 1})
+                    available_time[day].append({"start_time": convert_et_to_timestr(start_flag),
+                                                "end_time": convert_et_to_timestr(time_point - 1, add_minutes=5)})
                     check_flag = True
             if check_flag:
                 if week_array[day][time_point]:
                     start_flag = time_point
                     check_flag = False
 
-        if start_flag < 287:
-            available_time[day].append({"start_time": start_flag, "end_time": 287})
+        if start_flag < 263:
+            available_time[day].append({"start_time": convert_et_to_timestr(start_flag), "end_time": "22:00"})
 
     return available_time
