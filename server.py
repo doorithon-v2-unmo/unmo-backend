@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from .unmoapp import views
+from unmoapp import views
 
 # Flask init
 application = Flask(__name__)
@@ -7,7 +7,7 @@ application = Flask(__name__)
 
 @application.route('/member/login', methods=['POST'])
 def member_login():
-    return jsonify(views.member_login())
+    return jsonify(views.member_login(request.form["uid"], request.form["pwd"]))
 
 
 @application.route('/member/friends', methods=['POST'])

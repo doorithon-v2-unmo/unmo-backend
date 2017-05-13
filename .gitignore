@@ -1,6 +1,7 @@
 
 # Custom gitignore
 test.*
+session*
 
 
 # Created by https://www.gitignore.io/api/python,pycharm
