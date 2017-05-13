@@ -17,7 +17,7 @@ def member_friends():
 
 @application.route('/service/submit', methods=['POST'])
 def service_submit():
-    return jsonify(views.service_submit())
+    return jsonify(views.service_submit(request.get_json()))
 
 
 # Test Run

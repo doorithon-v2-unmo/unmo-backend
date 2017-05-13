@@ -14,5 +14,5 @@ def member_friends(ses_id):
     return controllers.get_friends(ses_id)
 
 
-def service_submit():
-    pass
+def service_submit(req_json):
+    return controllers.service_run(req_json["session_id"], req_json["users"])

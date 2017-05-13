@@ -1,6 +1,6 @@
 import requests
 from . import consts
-from .unmolib import utility, everytime
+from .unmolib import utility, everytime, unmo
 from .models import StdResponse
 import pickle
 
@@ -30,8 +30,16 @@ def get_friends(ses_id):
         return ses_result
 
 
-def service_run(users_list):
-    pass
+def service_run(ses_id, users_list):
+    ses_result = _load_session(ses_id)
+    if ses_result.result():
+        all_lectures = [everytime.parse_timetable(ses=ses_result.data())]
+        for user in users_list:
+            all_lectures.append(everytime.parse_timetable(uid=user))
+        diff_result = unmo.unmo_diff(all_lectures)
+        return StdResponse("success", data={"avaliable_times": diff_result})
+    else:
+        return ses_result
 
 
 def _save_session(ses):
