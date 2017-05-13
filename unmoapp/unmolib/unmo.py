@@ -22,7 +22,7 @@ def unmo_diff(lectures_list):
             if not check_flag:
                 if not week_array[day][time_point]:
                     available_time[day].append({"start_time": convert_et_to_timestr(start_flag),
-                                                "end_time": convert_et_to_timestr(time_point - 1, add_minutes=5)})
+                                                "end_time": convert_et_to_timestr(time_point - 1)})
                     check_flag = True
             if check_flag:
                 if week_array[day][time_point]:
