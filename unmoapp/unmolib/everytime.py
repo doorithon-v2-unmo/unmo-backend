@@ -10,6 +10,7 @@ time_table_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getOneTabl
 time_table_list_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getPrimaryTableList"
 semester_url = "http://timetable.everytime.kr/ajax/timetable/wizard/getSemesters"
 root_url = "http://everytime.kr/"
+friend_url = "http://everytime.kr/ajax/friend/getfriendlist"
 
 
 class EverytimeLecture(dict):
@@ -32,7 +33,16 @@ class EverytimeFriend(dict):
     """
     친구 단위 Class
     """
-    pass
+
+    def __init__(self, name, id, userid, nickname, picture):
+        super().__init__()
+        self.update({
+            "name": name,
+            "id": int(id),
+            "userid": userid,
+            "nickname": nickname,
+            "picture": picture
+        })
 
 
 def parse_timetable(ses=None, uid=None):
@@ -43,8 +53,8 @@ def parse_timetable(ses=None, uid=None):
     elif ses:
         lecture_list = []
         r = BeautifulSoup(
-            requests.post(time_table_url,
-                          data={'id': get_timetable_id_by_token(ses), 'token': get_timetable_user_token(ses)}).text)
+            ses.post(time_table_url,
+                     data={'id': get_timetable_id_by_token(ses), 'token': get_timetable_user_token(ses)}).text)
         for datas in r.find_all('subject'):
             name = datas.find("name").get('value')
             for data in datas.find_all('data'):
@@ -59,7 +69,18 @@ def parse_timetable(ses=None, uid=None):
 
 def parse_friends(ses=None):
     # TODO: requests 세션이 input 되면 이를 이용해 친구 목록을 파싱합니다.
-    pass
+    everytime_friend_list = []
+    r = BeautifulSoup(
+        ses.post(friend_url).text)
+    for data in r.find_all('friend'):
+        id = data.get('id')
+        userid = data.get('userid')
+        name = data.get('name')
+        nickname = data.get('nickname')
+        picture = data.get('picture')
+        everytime_friend_list.append(EverytimeFriend(name, id, userid, nickname, picture))
+
+    return everytime_friend_list
 
 
 def parse_timetable_by_id(id):
