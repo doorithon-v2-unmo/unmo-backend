@@ -12,7 +12,7 @@ def member_login():
 
 @application.route('/member/friends', methods=['POST'])
 def member_friends():
-    return jsonify(views.member_friends())
+    return jsonify(views.member_friends(request.form["session_id"]))
 
 
 @application.route('/service/submit', methods=['POST'])

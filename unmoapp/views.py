@@ -10,8 +10,8 @@ def member_login(uid, pwd):
         return StdResponse("auth.failed")
 
 
-def member_friends():
-    pass
+def member_friends(ses_id):
+    return controllers.get_friends(ses_id)
 
 
 def service_submit():

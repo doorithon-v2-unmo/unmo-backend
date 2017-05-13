@@ -1,6 +1,6 @@
 import requests
 from . import consts
-from .unmolib import utility
+from .unmolib import utility, everytime
 from .models import StdResponse
 import pickle
 
@@ -23,7 +23,11 @@ def everytime_login(uid, pwd):
 
 
 def get_friends(ses_id):
-    pass
+    ses_result = _load_session(ses_id)
+    if ses_result.result():
+        return StdResponse("success", everytime.parse_friends(ses_result.data()))
+    else:
+        return ses_result
 
 
 def service_run(users_list):
